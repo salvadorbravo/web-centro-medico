@@ -1,0 +1,20 @@
+{% extends 'homebase.html' %}
+
+
+{% block content %}
+
+<br>
+<br>
+
+<div class="jumbotron" style="margin-bottom:0px;">
+  <h1 class="display-4" style="text-align:center;">Hola, Doctor</h1>
+  <p class="lead">Bienvenido al Sistema de Gestión Del Centro Medico Galenos..</p>
+  <hr class="my-4">
+
+  <p class="lead">
+    <a class="btn btn-danger btn-lg" href="{% url 'registrar_medico' %}" role="button">Registrarse</a>
+    <a class="btn btn-success btn-lg" href="{% url 'login_medico' %}" role="button">Login</a>
+  </p>
+</div>
+
+{% endblock content %}
