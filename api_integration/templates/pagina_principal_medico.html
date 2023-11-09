@@ -1,1 +1,120 @@
-<h1>Pagina principal medico</h1>
+<!-- En la página principal del médico -->
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+
+    h2 {
+        font-size: 24px;
+        color: #333;
+        margin-top: 20px;
+    }
+
+    table {
+        width: 80%;
+        margin: 20px auto;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #ddd;
+    }
+
+    .anulada {
+        background-color: #ff0000;
+        color: #fff;
+    }
+</style>
+
+<h2>Tus Citas Agendadas</h2>
+<table id="lista-reservas">
+    <thead>
+        <tr>
+            <th>ID Reserva</th>
+            <th>Paciente</th>
+            <th>Fecha y Hora</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Las reservas se listarán aquí -->
+    </tbody>
+</table>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const listaReservas = document.getElementById("lista-reservas");
+
+        // Función para mostrar las reservas
+        function mostrarReservas() {
+            fetch("https://arquitectura.sabravo.repl.co/api/reservas/1")
+                .then(response => response.json())
+                .then(data => {
+                    listaReservas.innerHTML = ""; // Limpiar la lista de reservas antes de mostrar
+
+                    data.forEach(reserva => {
+                        const listItem = document.createElement("tr");
+
+                        // Agregar ID de reserva
+                        const idReserva = document.createElement("td");
+                        idReserva.textContent = reserva.id;
+                        listItem.appendChild(idReserva);
+
+                        // Agregar nombre del paciente en lugar de ID
+                        const pacienteNombre = document.createElement("td");
+                        fetch(`https://arquitectura.sabravo.repl.co/api/paciente/${reserva.paciente_id}`)
+                            .then(response => response.json())
+                            .then(pacienteData => {
+                                pacienteNombre.textContent = `${pacienteData.nombre} ${pacienteData.apellido}`;
+                            });
+                        listItem.appendChild(pacienteNombre);
+
+                        // Agregar fecha y hora
+                        const fechaHora = document.createElement("td");
+                        const fecha = new Date(reserva.fecha_hora).toLocaleDateString();
+                        const hora = new Date(reserva.fecha_hora).toLocaleTimeString();
+                        fechaHora.textContent = `${fecha} ${hora}`;
+                        listItem.appendChild(fechaHora);
+
+                        // Agregar estado (anulada o no)
+                        const estado = document.createElement("td");
+                        if (reserva.anulada) {
+                            estado.textContent = "Anulada";
+                            estado.classList.add("anulada");
+                        } else {
+                            estado.textContent = "Agendada";
+                        }
+                        listItem.appendChild(estado);
+
+                        listaReservas.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al obtener las reservas: " + error);
+                });
+        }
+
+        // Llama a la función para mostrar las reservas al cargar la página
+        mostrarReservas();
+    });
+</script>
