@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agendar Cita</title>
+  <title>Gestión de Citas Médicas</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -35,7 +36,8 @@
       margin-bottom: 10px;
     }
 
-    select, input[type="datetime-local"] {
+    select,
+    input[type="datetime-local"] {
       width: 100%;
       padding: 10px;
       font-size: 16px;
@@ -59,15 +61,151 @@
       font-size: 16px;
       color: #ff0000;
     }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 10px;
+    }
+
+    .anular-button {
+      background-color: #ff0000;
+    }
+
+    .anular-button:hover {
+      background-color: #cc0000;
+    }
   </style>
 </head>
+
 <body>
-  <h2>Agendar Cita</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+  <h2>Gestión de Citas Médicas</h2>
+  <form id="cita-form">
+    <label for="medico_id">Médico:</label>
+    <select id="medico_id" name="medico_id">
+      <!-- La lista de médicos se generará dinámicamente aquí -->
+    </select>
+    <label for="fecha_hora">Fecha y Hora:</label>
+    <input type="datetime-local" id="fecha_hora" name="fecha_hora">
     <button type="submit">Agendar Cita</button>
+    <p id="error-message"></p>
   </form>
-  <p>{{ error_message }}</p>
+
+  <h2>Tus Citas Agendadas</h2>
+  <ul id="lista-citas">
+    <!-- Las citas se listarán aquí -->
+  </ul>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const form = document.getElementById("cita-form");
+      const errorText = document.getElementById("error-message");
+      const listaCitas = document.getElementById("lista-citas");
+
+      // Función para mostrar la lista de citas
+      function mostrarCitas() {
+        fetch("https://arquitectura.sabravo.repl.co/api/reservas/1")
+          .then(response => response.json())
+          .then(data => {
+            listaCitas.innerHTML = ""; // Limpiar la lista de citas antes de mostrar
+
+            data.forEach(cita => {
+              const listItem = document.createElement("li");
+              listItem.textContent = `Cita con el médico ${cita.medico_id} el ${cita.fecha_hora}`;
+
+              // Agregar un botón "Anular" para cada cita
+              const anularButton = document.createElement("button");
+              anularButton.textContent = "Anular";
+              anularButton.classList.add("anular-button");
+              anularButton.addEventListener("click", () => anularCita(cita.id)); // Llama a la función para anular la cita
+
+              listItem.appendChild(anularButton);
+              listaCitas.appendChild(listItem);
+            });
+          })
+          .catch(error => {
+            console.error("Error al obtener las citas: " + error);
+          });
+      }
+
+      // Llama a la función para mostrar las citas al cargar la página
+      mostrarCitas();
+
+      // Función para anular una cita
+      function anularCita(citaId) {
+        // Envía una solicitud PUT al servidor para anular la cita
+        fetch(`https://arquitectura.sabravo.repl.co/api/reserva/${citaId}/anular`, {
+          method: "PUT"
+        })
+          .then(response => {
+            if (response.status === 200) {
+              // Cita anulada con éxito, actualiza la lista de citas
+              mostrarCitas();
+            } else {
+              console.error("Error al anular la cita.");
+            }
+          })
+          .catch(error => {
+            console.error("Error al anular la cita: " + error);
+          });
+      }
+
+      // Obtener la lista de médicos al cargar la página
+      fetch("https://arquitectura.sabravo.repl.co/api/medicos")
+        .then(response => response.json())
+        .then(data => {
+          console.log(data); // Agrega esta línea
+          const medicoSelect = document.getElementById("medico_id");
+          data.forEach(medico => {
+            const option = document.createElement("option");
+            option.value = medico.id;
+            option.text = `${medico.nombre} ${medico.apellido}`;
+            medicoSelect.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.error("Error al obtener la lista de médicos: " + error);
+        });
+
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        errorText.textContent = "";
+
+        const pacienteId = 1;
+        const medicoId = form.medico_id.value;
+        const fechaHora = form.fecha_hora.value;
+
+        const data = {
+          paciente_id: pacienteId,
+          medico_id: medicoId,
+          fecha_hora: fechaHora,
+        };
+
+        try {
+          const response = await fetch("https://arquitectura.sabravo.repl.co/api/reserva", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (response.status === 201) {
+            // Cita agendada con éxito, actualiza la lista de citas
+            mostrarCitas();
+          } else {
+            const errorData = await response.json();
+            errorText.textContent = errorData.error;
+          }
+        } catch (error) {
+          errorText.textContent = "Ocurrió un error al procesar la solicitud.";
+        }
+      });
+    });
+  </script>
 </body>
+
 </html>

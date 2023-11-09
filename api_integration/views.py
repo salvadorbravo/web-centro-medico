@@ -1,20 +1,23 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import requests
-from .forms import PacienteRegistroForm, MedicoRegistroForm, ReservaCitaForm
+from .forms import PacienteRegistroForm, MedicoRegistroForm
 from datetime import datetime
 
 # Create your views here.
 
+
 ################# INICIO #################
 def home(request):
-    return render(request, 'index.html')
+    return render(request, "index.html")
+
 
 def doctor(request):
-    return render(request,'doctor.html')
+    return render(request, "doctor.html")
+
 
 def paciente(request):
-    return render(request,'paciente.html')
+    return render(request, "paciente.html")
 
 
 ################# PACIENTE #################
@@ -129,33 +132,12 @@ def login_medico(request):
 
 ############### LOGICA ##################
 def pagina_principal_paciente(request):
-    error_message = None
-
-    if request.method == "POST":
-        form = ReservaCitaForm(request.POST)
-        if form.is_valid():
-            paciente_id = form.cleaned_data["paciente_id"]
-            medico_id = form.cleaned_data["medico_id"]
-            fecha_hora = form.cleaned_data["fecha_hora"].isoformat()  # Convertir a cadena ISO 8601
-
-            data = {
-                "paciente_id": paciente_id,
-                "medico_id": medico_id,
-                "fecha_hora": fecha_hora,
-            }
-            response = requests.post(
-                "https://arquitectura.sabravo.repl.co/api/reserva", json=data
-            )
-
-            if response.status_code == 201:
-                return redirect("pagina_principal_paciente")
-            else:
-                error_message = response.json().get("error", "Error al reservar cita.")
-    else:
-        form = ReservaCitaForm()
-        
-    return render(request, 'pagina_principal_paciente.html', {'form': form, 'error_message': error_message})
+    return render(request, "pagina_principal_paciente.html")
 
 
 def pagina_principal_medico(request):
     return render(request, "pagina_principal_medico.html")
+
+
+def pagina_confirmacion(request):
+    return render(request, "confirmacion.html")

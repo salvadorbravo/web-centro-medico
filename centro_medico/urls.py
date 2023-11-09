@@ -18,4 +18,7 @@ urlpatterns = [
     path('pagina_principal_paciente/', views.pagina_principal_paciente, name='pagina_principal_paciente'),
     path('pagina_principal_medico/', views.pagina_principal_medico, 
     name='pagina_principal_medico'),
+    
+    path('confirmacion/', views.pagina_confirmacion, name='pagina_confirmacion'),
+
 ]
