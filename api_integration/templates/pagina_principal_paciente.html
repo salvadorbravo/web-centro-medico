@@ -105,31 +105,38 @@
       const errorText = document.getElementById("error-message");
       const listaCitas = document.getElementById("lista-citas");
 
-      // Función para mostrar la lista de citas
       function mostrarCitas() {
-        fetch("https://arquitectura.sabravo.repl.co/api/reservas/1")
-          .then(response => response.json())
+        fetch("https://arquitectura.sabravo.repl.co/api/medico/1/reservas")
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Error de red: ${response.status}`);
+            }
+            return response.json();
+          })
           .then(data => {
-            listaCitas.innerHTML = ""; // Limpiar la lista de citas antes de mostrar
+            console.log("Datos de citas recibidos:", data);
 
-            data.forEach(cita => {
-              const listItem = document.createElement("li");
-              listItem.textContent = `Cita con el médico ${cita.medico_id} el ${cita.fecha_hora}`;
-
-              // Agregar un botón "Anular" para cada cita
-              const anularButton = document.createElement("button");
-              anularButton.textContent = "Anular";
-              anularButton.classList.add("anular-button");
-              anularButton.addEventListener("click", () => anularCita(cita.id)); // Llama a la función para anular la cita
-
-              listItem.appendChild(anularButton);
-              listaCitas.appendChild(listItem);
-            });
+            if (Array.isArray(data)) {
+              listaCitas.innerHTML = "";
+              data.forEach(cita => {
+                const listItem = document.createElement("li");
+                listItem.textContent = `Cita con el médico ${cita.medico_id} el ${cita.fecha_hora}`;
+                const anularButton = document.createElement("button");
+                anularButton.textContent = "Anular";
+                anularButton.classList.add("anular-button");
+                anularButton.addEventListener("click", () => anularCita(cita.id));
+                listItem.appendChild(anularButton);
+                listaCitas.appendChild(listItem);
+              });
+            } else {
+              console.error("La respuesta de la API no es un array:", data);
+            }
           })
           .catch(error => {
-            console.error("Error al obtener las citas: " + error);
+            console.error("Error al obtener las citas:", error);
           });
       }
+
 
       // Llama a la función para mostrar las citas al cargar la página
       mostrarCitas();
@@ -142,8 +149,8 @@
         })
           .then(response => {
             if (response.status === 200) {
-              // Cita anulada con éxito, actualiza la lista de citas
-              mostrarCitas();
+              // Cita anulada con éxito, oculta la lista de citas
+              listaCitas.style.display = "none";
             } else {
               console.error("Error al anular la cita.");
             }
